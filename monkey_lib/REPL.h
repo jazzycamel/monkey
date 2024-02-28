@@ -5,8 +5,7 @@ const auto PROMPT = ">> ";
 
 class REPL {
 public:
-    void start();
+  void start();
 };
 
-
-#endif //MONKEY_REPL_H
+#endif // MONKEY_REPL_H

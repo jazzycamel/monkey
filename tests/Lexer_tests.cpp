@@ -1,11 +1,11 @@
-#include <iostream>
 #include <catch2/catch_test_macros.hpp>
+#include <iostream>
 
-#include "Token.h"
 #include "Lexer.h"
+#include "Token.h"
 
 TEST_CASE("Token") {
-    std::string input = R"(let five = 5;
+  std::string input = R"(let five = 5;
 let ten = 10;
 
 let add = fn(x, y) {
@@ -26,90 +26,41 @@ if (5 < 10) {
 10 != 9;
 )";
 
-    Token tests[] = {
-            {LET,       "let"},
-            {IDENT,     "five"},
-            {ASSIGN,    "="},
-            {INT,       "5"},
-            {SEMICOLON, ";"},
-            {LET,       "let"},
-            {IDENT,     "ten"},
-            {ASSIGN,    "="},
-            {INT,       "10"},
-            {SEMICOLON, ";"},
-            {LET,       "let"},
-            {IDENT,     "add"},
-            {ASSIGN,    "="},
-            {FUNCTION,  "fn"},
-            {LPAREN,    "("},
-            {IDENT,     "x"},
-            {COMMA,     ","},
-            {IDENT,     "y"},
-            {RPAREN,    ")"},
-            {LBRACE,    "{"},
-            {IDENT,     "x"},
-            {PLUS,      "+"},
-            {IDENT,     "y"},
-            {SEMICOLON, ";"},
-            {RBRACE,    "}"},
-            {SEMICOLON, ";"},
-            {LET,       "let"},
-            {IDENT,     "result"},
-            {ASSIGN,    "="},
-            {IDENT,     "add"},
-            {LPAREN,    "("},
-            {IDENT,     "five"},
-            {COMMA,     ","},
-            {IDENT,     "ten"},
-            {RPAREN,    ")"},
-            {SEMICOLON, ";"},
-            {BANG,      "!"},
-            {MINUS,     "-"},
-            {SLASH,     "/"},
-            {ASTERISK,  "*"},
-            {INT,       "5"},
-            {SEMICOLON, ";"},
-            {INT,       "5"},
-            {LT,        "<"},
-            {INT,       "10"},
-            {GT,        ">"},
-            {INT,       "5"},
-            {SEMICOLON, ";"},
-            {IF,        "if"},
-            {LPAREN,    "("},
-            {INT,       "5"},
-            {LT,        "<"},
-            {INT,       "10"},
-            {RPAREN,    ")"},
-            {LBRACE,    "{"},
-            {RETURN,    "return"},
-            {TRUE,      "true"},
-            {SEMICOLON, ";"},
-            {RBRACE,    "}"},
-            {ELSE,      "else"},
-            {LBRACE,    "{"},
-            {RETURN,    "return"},
-            {FALSE,     "false"},
-            {SEMICOLON, ";"},
-            {RBRACE,    "}"},
-            {INT,       "10"},
-            {EQ,        "=="},
-            {INT,       "10"},
-            {SEMICOLON, ";"},
-            {INT,       "10"},
-            {NOT_EQ,    "!="},
-            {INT,       "9"},
-            {SEMICOLON, ";"},
-            {EOF_,      ""},
-    };
+  Token tests[] = {
+      {LET, "let"},      {IDENT, "five"},    {ASSIGN, "="},
+      {INT, "5"},        {SEMICOLON, ";"},   {LET, "let"},
+      {IDENT, "ten"},    {ASSIGN, "="},      {INT, "10"},
+      {SEMICOLON, ";"},  {LET, "let"},       {IDENT, "add"},
+      {ASSIGN, "="},     {FUNCTION, "fn"},   {LPAREN, "("},
+      {IDENT, "x"},      {COMMA, ","},       {IDENT, "y"},
+      {RPAREN, ")"},     {LBRACE, "{"},      {IDENT, "x"},
+      {PLUS, "+"},       {IDENT, "y"},       {SEMICOLON, ";"},
+      {RBRACE, "}"},     {SEMICOLON, ";"},   {LET, "let"},
+      {IDENT, "result"}, {ASSIGN, "="},      {IDENT, "add"},
+      {LPAREN, "("},     {IDENT, "five"},    {COMMA, ","},
+      {IDENT, "ten"},    {RPAREN, ")"},      {SEMICOLON, ";"},
+      {BANG, "!"},       {MINUS, "-"},       {SLASH, "/"},
+      {ASTERISK, "*"},   {INT, "5"},         {SEMICOLON, ";"},
+      {INT, "5"},        {LT, "<"},          {INT, "10"},
+      {GT, ">"},         {INT, "5"},         {SEMICOLON, ";"},
+      {IF, "if"},        {LPAREN, "("},      {INT, "5"},
+      {LT, "<"},         {INT, "10"},        {RPAREN, ")"},
+      {LBRACE, "{"},     {RETURN, "return"}, {TRUE, "true"},
+      {SEMICOLON, ";"},  {RBRACE, "}"},      {ELSE, "else"},
+      {LBRACE, "{"},     {RETURN, "return"}, {FALSE, "false"},
+      {SEMICOLON, ";"},  {RBRACE, "}"},      {INT, "10"},
+      {EQ, "=="},        {INT, "10"},        {SEMICOLON, ";"},
+      {INT, "10"},       {NOT_EQ, "!="},     {INT, "9"},
+      {SEMICOLON, ";"},  {EOF_, ""},
+  };
 
-    auto *lexer = new Lexer(input);
+  auto *lexer = new Lexer(input);
 
-    int counter = 0;
-    for (auto tt: tests) {
-        auto token = lexer->nextToken();
-        REQUIRE(token.type == tt.type);
-        REQUIRE(token.literal == tt.literal);
-        counter++;
-    }
+  int counter = 0;
+  for (auto tt : tests) {
+    auto token = lexer->nextToken();
+    REQUIRE(token.type == tt.type);
+    REQUIRE(token.literal == tt.literal);
+    counter++;
+  }
 }
