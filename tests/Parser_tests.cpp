@@ -12,6 +12,46 @@ void checkErrors(const std::vector<std::string> &errors) {
   REQUIRE(errors.empty());
 }
 
+bool testIntegerLiteral(const std::shared_ptr<Expression> &expression,
+                        const int64_t value) {
+  auto literal = dynamic_cast<IntegerLiteralExpression *>(expression.get());
+  REQUIRE(literal != nullptr);
+  REQUIRE(literal->value == value);
+  return true;
+}
+
+bool testIdentifier(const std::shared_ptr<Expression> &expression,
+                    const std::string &value) {
+  auto identifier = dynamic_cast<Identifier *>(expression.get());
+  REQUIRE(identifier != nullptr);
+  REQUIRE(identifier->value == value);
+  REQUIRE(identifier->tokenLiteral() == value);
+  return true;
+}
+
+template <typename T>
+bool testLiteralExpression(const std::shared_ptr<Expression> &expression,
+                           T value) {
+  if constexpr (std::is_same<T, int>::value)
+    return testIntegerLiteral(expression, (int64_t)value);
+  else if constexpr (std::is_same<T, int64_t>::value)
+    return testIntegerLiteral(expression, value);
+  else if constexpr (std::is_same<T, std::string>::value)
+    return testIdentifier(expression, value);
+  return false;
+}
+
+template <typename T>
+bool testInfixExpression(const std::shared_ptr<Expression> &expression, T left,
+                         std::string operator_, T right) {
+  auto infix = dynamic_cast<InfixExpression *>(expression.get());
+  REQUIRE(infix != nullptr);
+  REQUIRE(testLiteralExpression(infix->left, left));
+  REQUIRE(infix->operator_ == operator_);
+  REQUIRE(testLiteralExpression(infix->right, right));
+  return true;
+}
+
 TEST_CASE("Parser: test let statements") {
   std::string input = R"(
 let x = 5;
@@ -122,14 +162,6 @@ TEST_CASE("Parser: integer literal expression") {
   REQUIRE(literal->tokenLiteral() == "5");
 }
 
-bool testIntegerLiteral(const std::shared_ptr<Expression> &expression,
-                        const int64_t value) {
-  auto literal = dynamic_cast<IntegerLiteralExpression *>(expression.get());
-  REQUIRE(literal != nullptr);
-  REQUIRE(literal->value == value);
-  return true;
-}
-
 TEST_CASE("Parser: prefix expressions") {
   typedef struct {
     std::string input;
@@ -154,7 +186,7 @@ TEST_CASE("Parser: prefix expressions") {
         dynamic_cast<PrefixExpression *>(expressionStatement->expression.get());
     REQUIRE(prefix != nullptr);
     REQUIRE(prefix->operator_ == tt.operator_);
-    REQUIRE(testIntegerLiteral(prefix->right, tt.integerValue));
+    REQUIRE(testLiteralExpression(prefix->right, tt.integerValue));
   }
 }
 
@@ -183,12 +215,8 @@ TEST_CASE("Parser: infix expressions") {
         dynamic_cast<ExpressionStatement *>(program->statements[0].get());
     REQUIRE(expressionStatement != nullptr);
 
-    auto infix =
-        dynamic_cast<InfixExpression *>(expressionStatement->expression.get());
-    REQUIRE(infix != nullptr);
-    REQUIRE(testIntegerLiteral(infix->left, tt.leftValue));
-    REQUIRE(infix->operator_ == tt.operator_);
-    REQUIRE(testIntegerLiteral(infix->right, tt.rightValue));
+    testInfixExpression(expressionStatement->expression, tt.leftValue,
+                        tt.operator_, tt.rightValue);
   }
 }
 
