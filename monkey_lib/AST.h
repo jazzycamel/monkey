@@ -103,4 +103,58 @@ public:
   std::shared_ptr<Expression> right;
 };
 
+class BooleanLiteralExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+
+  Token token;
+  bool value;
+};
+
+class BlockStatement : public Statement {
+public:
+  std::string tokenLiteral() override;
+  void statementNode() override;
+  std::string string() override;
+
+  Token token;
+  std::vector<std::shared_ptr<Statement>> statements;
+};
+
+class IfExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+
+  Token token;
+  std::shared_ptr<Expression> condition;
+  std::shared_ptr<BlockStatement> consequence;
+  std::shared_ptr<BlockStatement> alternative;
+};
+
+class FunctionLiteralExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+
+  Token token;
+  std::vector<std::shared_ptr<Identifier>> parameters;
+  std::shared_ptr<BlockStatement> body;
+};
+
+class CallExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+
+  Token token;
+  std::shared_ptr<Expression> function;
+  std::vector<std::shared_ptr<Expression>> arguments;
+};
+
 #endif // MONKEY_AST_H

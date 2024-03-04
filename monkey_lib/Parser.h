@@ -20,8 +20,9 @@ typedef std::shared_ptr<Expression> (Parser::*infixParseFn)(
 enum { LOWEST = 1, EQUALS, LESS_GREATER, SUM, PRODUCT, PREFIX, CALL };
 
 const std::map<TokenType, int> precedences = {
-    {EQ, EQUALS}, {NOT_EQ, EQUALS}, {LT, LESS_GREATER}, {GT, LESS_GREATER},
-    {PLUS, SUM},  {MINUS, SUM},     {SLASH, PRODUCT},   {ASTERISK, PRODUCT}};
+    {EQ, EQUALS},       {NOT_EQ, EQUALS},    {LT, LESS_GREATER},
+    {GT, LESS_GREATER}, {PLUS, SUM},         {MINUS, SUM},
+    {SLASH, PRODUCT},   {ASTERISK, PRODUCT}, {LPAREN, CALL}};
 
 class Parser {
 public:
@@ -52,6 +53,23 @@ private:
 
   std::shared_ptr<Expression>
   _parseInfixExpression(std::shared_ptr<Expression> left);
+
+  std::shared_ptr<Expression> _parseBooleanLiteralExpression();
+
+  std::shared_ptr<Expression> _parseGroupedExpression();
+
+  std::shared_ptr<Expression> _parseIfExpression();
+
+  std::shared_ptr<BlockStatement> _parseBlockStatement();
+
+  std::shared_ptr<Expression> _parseFunctionLiteralExpression();
+
+  std::vector<std::shared_ptr<Identifier>> _parseFunctionParameters();
+
+  std::shared_ptr<Expression>
+  _parseCallExpression(std::shared_ptr<Expression> function);
+
+  std::vector<std::shared_ptr<Expression>> _parseCallArguments();
 
   void _noPrefixParseFnError(const TokenType &t);
 

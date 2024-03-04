@@ -74,3 +74,59 @@ std::string InfixExpression::string() {
   out += ")";
   return out;
 }
+
+std::string BooleanLiteralExpression::tokenLiteral() { return token.literal; }
+void BooleanLiteralExpression::expressionNode() {}
+std::string BooleanLiteralExpression::string() { return token.literal; }
+
+std::string IfExpression::tokenLiteral() { return token.literal; }
+void IfExpression::expressionNode() {}
+std::string IfExpression::string() {
+  std::string out = "if";
+  out += condition->string();
+  out += " ";
+  out += consequence->string();
+
+  if (alternative != nullptr) {
+    out += "else ";
+    out += alternative->string();
+  }
+
+  return out;
+}
+
+std::string BlockStatement::tokenLiteral() { return token.literal; }
+void BlockStatement::statementNode() {}
+std::string BlockStatement::string() {
+  std::string out;
+  for (const auto &statement : statements) {
+    out += statement->string();
+  }
+  return out;
+}
+
+std::string FunctionLiteralExpression::tokenLiteral() { return token.literal; }
+void FunctionLiteralExpression::expressionNode() {}
+std::string FunctionLiteralExpression::string() {
+  std::string out = tokenLiteral() + "(";
+  for (const auto &param : parameters) {
+    out += param->string();
+  }
+  out += ") ";
+  out += body->string();
+  return out;
+}
+
+std::string CallExpression::tokenLiteral() { return token.literal; }
+void CallExpression::expressionNode() {}
+std::string CallExpression::string() {
+  std::string out = function->string() + "(";
+  for(auto i=0; i<arguments.size(); i++) {
+    out += arguments[i]->string();
+    if(i < arguments.size() - 1) {
+      out += ", ";
+    }
+  }
+  out += ")";
+  return out;
+}
