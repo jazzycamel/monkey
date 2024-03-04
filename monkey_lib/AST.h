@@ -6,10 +6,27 @@
 #include <string>
 #include <vector>
 
+enum NodeType {
+  PROGRAM,
+  LET_STATEMENT,
+  RETURN_STATEMENT,
+  EXPRESSION_STATEMENT,
+  IDENTIFIER,
+  INTEGER_LITERAL,
+  PREFIX_EXPRESSION,
+  INFIX_EXPRESSION,
+  BOOLEAN_LITERAL,
+  BLOCK_STATEMENT,
+  IF_EXPRESSION,
+  FUNCTION_LITERAL,
+  CALL_EXPRESSION
+};
+
 class Node {
 public:
   virtual std::string tokenLiteral() = 0;
   virtual std::string string() = 0;
+  virtual NodeType nodeType() = 0;
 };
 
 class Statement : public Node {
@@ -27,6 +44,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::string value;
@@ -37,6 +55,7 @@ public:
   std::string tokenLiteral() override;
   std::vector<std::shared_ptr<Statement>> statements;
   std::string string() override;
+  NodeType nodeType() override;
 };
 
 class LetStatement : public Statement {
@@ -44,6 +63,7 @@ public:
   std::string tokenLiteral() override;
   void statementNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   Identifier *name;
@@ -55,6 +75,7 @@ public:
   std::string tokenLiteral() override;
   void statementNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::shared_ptr<Expression> returnValue;
@@ -65,6 +86,7 @@ public:
   std::string tokenLiteral() override;
   void statementNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::shared_ptr<Expression> expression;
@@ -75,6 +97,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   int64_t value;
@@ -85,6 +108,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::string operator_;
@@ -96,6 +120,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::shared_ptr<Expression> left;
@@ -108,6 +133,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   bool value;
@@ -118,6 +144,7 @@ public:
   std::string tokenLiteral() override;
   void statementNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::vector<std::shared_ptr<Statement>> statements;
@@ -128,6 +155,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::shared_ptr<Expression> condition;
@@ -140,6 +168,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::vector<std::shared_ptr<Identifier>> parameters;
@@ -151,6 +180,7 @@ public:
   std::string tokenLiteral() override;
   void expressionNode() override;
   std::string string() override;
+  NodeType nodeType() override;
 
   Token token;
   std::shared_ptr<Expression> function;

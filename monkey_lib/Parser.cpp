@@ -29,17 +29,17 @@ Parser::Parser(Lexer *lexer) : _lexer(lexer) {
   _registerInfix(LPAREN, &Parser::_parseCallExpression);
 }
 
-Program *Parser::parseProgram() {
-  auto program = new Program();
+std::shared_ptr<Program> Parser::parseProgram() {
+  Program program;
   do {
     auto statement = _parseStatement();
     if (statement != nullptr) {
-      program->statements.push_back(statement);
+      program.statements.push_back(statement);
     }
     _nextToken();
   } while (_currentToken.type != EOF_);
 
-  return program;
+  return std::make_shared<Program>(program);
 }
 
 std::vector<std::string> Parser::errors() { return _errors; }

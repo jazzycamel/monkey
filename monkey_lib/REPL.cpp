@@ -1,4 +1,5 @@
 #include "REPL.h"
+#include "Evaluator.h"
 #include "Lexer.h"
 #include "Parser.h"
 
@@ -15,7 +16,11 @@ void REPL::start() {
       _printParseErrors(parser->errors());
       continue;
     }
-    std::cout << program->string() << std::endl;
+
+    auto evaluated = Evaluator().evaluate(program);
+    if (evaluated != nullptr) {
+      std::cout << evaluated->inspect() << std::endl;
+    }
   }
 }
 

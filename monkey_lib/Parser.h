@@ -28,7 +28,7 @@ class Parser {
 public:
   explicit Parser(Lexer *lexer);
 
-  Program *parseProgram();
+  std::shared_ptr<Program> parseProgram();
 
   std::vector<std::string> errors();
 
