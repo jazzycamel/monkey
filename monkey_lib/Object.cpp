@@ -2,6 +2,10 @@
 
 #include <utility>
 
+ErrorObject::ErrorObject(std::string message) : message(std::move(message)) {}
+ObjectType ErrorObject::type() { return ERROR_OBJ; }
+std::string ErrorObject::inspect() { return "ERROR: " + message; }
+
 IntegerObject::IntegerObject(int64_t value) : value(value) {}
 ObjectType IntegerObject::type() { return INTEGER_OBJ; }
 std::string IntegerObject::inspect() { return std::to_string(value); }

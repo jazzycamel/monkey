@@ -5,6 +5,7 @@
 #include "Lexer.h"
 #include "Parser.h"
 #include <any>
+#include <iostream>
 
 std::shared_ptr<Object> testEval(std::string input) {
   auto lexer = new Lexer(std::move(input));
@@ -135,5 +136,30 @@ TEST_CASE("Evaluator: return statements") {
   for (const auto &test : tests) {
     auto evaluated = testEval(test.input);
     REQUIRE(testIntegerObject(evaluated, test.expected));
+  }
+}
+
+TEST_CASE("Evaluator: errors") {
+  typedef struct {
+    std::string input;
+    std::string expectedMessage;
+  } ErrorTest;
+
+  ErrorTest tests[] = {
+      {"5 + true;", "type mismatch: INTEGER + BOOLEAN"},
+      {"5 + true; 5;", "type mismatch: INTEGER + BOOLEAN"},
+      {"-true", "unknown operator: -BOOLEAN"},
+      {"true + false;", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"5; true + false; 5", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
+      {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
+       "unknown operator: BOOLEAN + BOOLEAN"},
+  };
+
+  for (const auto &test : tests) {
+    auto evaluated = testEval(test.input);
+    auto result = std::dynamic_pointer_cast<ErrorObject>(evaluated);
+    REQUIRE(result != nullptr);
+    REQUIRE(result->message == test.expectedMessage);
   }
 }

@@ -31,7 +31,11 @@ private:
   _evaluateIfExpression(const std::shared_ptr<IfExpression> &ie);
   std::shared_ptr<Object>
   _evaluateBlockStatement(const std::shared_ptr<BlockStatement> &block);
-  static bool isTruthy(const std::shared_ptr<Object> &obj);
+  static bool _isTruthy(const std::shared_ptr<Object> &obj);
+
+  template <typename... Args>
+  std::shared_ptr<Object> _newError(const std::string &format, Args &&...args);
+  bool _isError(const std::shared_ptr<Object> &obj);
 };
 
 #endif // MONKEY_EVALUATOR_H

@@ -6,13 +6,23 @@
 
 typedef std::string ObjectType;
 
-const ObjectType INTEGER_OBJ = "INTEGER", BOOLEAN_OBJ = "BOOLEAN",
-                 NULL_OBJ = "NULL", RETURN_VALUE_OBJ = "RETURN_VALUE";
+const ObjectType ERROR_OBJ = "ERROR", INTEGER_OBJ = "INTEGER",
+                 BOOLEAN_OBJ = "BOOLEAN", NULL_OBJ = "NULL",
+                 RETURN_VALUE_OBJ = "RETURN_VALUE";
 
 class Object {
 public:
   virtual ObjectType type() = 0;
   virtual std::string inspect() = 0;
+};
+
+class ErrorObject : public Object {
+public:
+  explicit ErrorObject(std::string message);
+  ObjectType type() override;
+  std::string inspect() override;
+
+  std::string message;
 };
 
 class IntegerObject : public Object {
