@@ -34,8 +34,4 @@ private:
   static bool isTruthy(const std::shared_ptr<Object> &obj);
 };
 
-const auto NULL_ = std::make_shared<NullObject>();
-const auto TRUE_ = std::make_shared<BooleanObject>(true);
-const auto FALSE_ = std::make_shared<BooleanObject>(false);
-
 #endif // MONKEY_EVALUATOR_H

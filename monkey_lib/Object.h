@@ -48,4 +48,8 @@ public:
   std::shared_ptr<Object> value;
 };
 
+const auto NULL_ = std::make_shared<NullObject>();
+const auto TRUE_ = std::make_shared<BooleanObject>(true);
+const auto FALSE_ = std::make_shared<BooleanObject>(false);
+
 #endif // MONKEY_OBJECT_H
