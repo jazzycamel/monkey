@@ -118,3 +118,22 @@ TEST_CASE("Evaluator: if else expressions") {
     }
   }
 }
+
+TEST_CASE("Evaluator: return statements") {
+  typedef struct {
+    std::string input;
+    int expected;
+  } ReturnStatementTest;
+
+  ReturnStatementTest tests[] = {
+      {"return 10;", 10},
+      {"return 10; 9;", 10},
+      {"return 2 * 5; 9;", 10},
+      {"9; return 2 * 5; 9;", 10},
+      {"if (10 > 1) { if (10 > 1) { return 10; } return 1; }", 10}};
+
+  for (const auto &test : tests) {
+    auto evaluated = testEval(test.input);
+    REQUIRE(testIntegerObject(evaluated, test.expected));
+  }
+}

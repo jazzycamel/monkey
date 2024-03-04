@@ -5,7 +5,7 @@
 std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
   switch (node->nodeType()) {
   case NodeType::PROGRAM:
-    return _evaluateStatements(
+    return _evaluateProgram(
         std::dynamic_pointer_cast<Program>(node)->statements);
   case NodeType::EXPRESSION_STATEMENT:
     return evaluate(
@@ -27,20 +27,26 @@ std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
         evaluate(std::dynamic_pointer_cast<InfixExpression>(node)->left),
         evaluate(std::dynamic_pointer_cast<InfixExpression>(node)->right));
   case NodeType::BLOCK_STATEMENT:
-    return _evaluateStatements(
-        std::dynamic_pointer_cast<BlockStatement>(node)->statements);
+    return _evaluateBlockStatement(
+        std::dynamic_pointer_cast<BlockStatement>(node));
   case NodeType::IF_EXPRESSION:
     return _evaluateIfExpression(std::dynamic_pointer_cast<IfExpression>(node));
+  case NodeType::RETURN_STATEMENT:
+    return std::make_shared<ReturnValueObject>(evaluate(
+        std::dynamic_pointer_cast<ReturnStatement>(node)->returnValue));
   default:
     return nullptr;
   }
 }
 
-std::shared_ptr<Object> Evaluator::_evaluateStatements(
+std::shared_ptr<Object> Evaluator::_evaluateProgram(
     const std::vector<std::shared_ptr<Statement>> &statements) {
   std::shared_ptr<Object> result;
   for (const auto &statement : statements) {
     result = evaluate(statement);
+    if (result->type() == RETURN_VALUE_OBJ) {
+      return std::dynamic_pointer_cast<ReturnValueObject>(result)->value;
+    }
   }
   return result;
 }
@@ -115,6 +121,18 @@ Evaluator::_evaluateIfExpression(const std::shared_ptr<IfExpression> &ie) {
     return evaluate(ie->alternative);
   }
   return NULL_;
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateBlockStatement(
+    const std::shared_ptr<BlockStatement> &block) {
+  std::shared_ptr<Object> result;
+  for (const auto &statement : block->statements) {
+    result = evaluate(statement);
+    if (result != NULL_ && result->type() == RETURN_VALUE_OBJ) {
+      return result;
+    }
+  }
+  return result;
 }
 
 bool Evaluator::isTruthy(const std::shared_ptr<Object> &obj) {

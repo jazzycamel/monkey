@@ -10,8 +10,8 @@ public:
   std::shared_ptr<Object> evaluate(const std::shared_ptr<Node> &node);
 
 private:
-  std::shared_ptr<Object> _evaluateStatements(
-      const std::vector<std::shared_ptr<Statement>> &statements);
+  std::shared_ptr<Object>
+  _evaluateProgram(const std::vector<std::shared_ptr<Statement>> &statements);
   std::shared_ptr<Object>
   _evaluatePrefixExpression(const std::string &op,
                             const std::shared_ptr<Object> &right);
@@ -29,7 +29,8 @@ private:
                                   const std::shared_ptr<Object> &right);
   std::shared_ptr<Object>
   _evaluateIfExpression(const std::shared_ptr<IfExpression> &ie);
-
+  std::shared_ptr<Object>
+  _evaluateBlockStatement(const std::shared_ptr<BlockStatement> &block);
   static bool isTruthy(const std::shared_ptr<Object> &obj);
 };
 
