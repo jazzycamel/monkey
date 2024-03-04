@@ -72,7 +72,7 @@ std::shared_ptr<LetStatement> Parser::_parseLetStatement() {
 
   if (!_expectPeek(ASSIGN))
     return nullptr;
-  
+
   _nextToken();
   statement.value = _parseExpression(LOWEST);
   if (_peekTokenIs(SEMICOLON))

@@ -1,8 +1,6 @@
 #include "REPL.h"
 #include "Lexer.h"
-#include "Token.h"
-#include <iostream>
-#include <string>
+#include "Parser.h"
 
 void REPL::start() {
   while (true) {
@@ -11,10 +9,35 @@ void REPL::start() {
     std::getline(std::cin, line);
 
     auto lexer = new Lexer(line);
-    auto token = lexer->nextToken();
-    do {
-      std::cout << token << std::endl;
-      token = lexer->nextToken();
-    } while (token.type != EOF_);
+    auto parser = new Parser(lexer);
+    auto program = parser->parseProgram();
+    if (!parser->errors().empty()) {
+      _printParseErrors(parser->errors());
+      continue;
+    }
+    std::cout << program->string() << std::endl;
+  }
+}
+
+const auto MONKEY_FACE = R"(
+           __,__
+  .--.  .-"     "-.  .--.
+ / .. \/  .-. .-.  \/ .. \
+| |  '|  /   Y   \  |'  | |
+| \   \  \ 0 | 0 /  /   / |
+ \ '- ,\.-"""""""-./, -' /
+  ''-' /_   ^ ^   _\ '-''
+      |  \._   _./  |
+      \   \ '~' /   /
+       '._ '-=-' _.'
+          '-----'
+)";
+
+void REPL::_printParseErrors(const std::vector<std::string> &errors) {
+  std::cout << MONKEY_FACE << std::endl;
+  std::cout << "Whoops! We ran into some monkey business here!" << std::endl;
+  std::cout << " parser errors:" << std::endl;
+  for (const auto &error : errors) {
+    std::cout << "\t" << error << std::endl;
   }
 }
