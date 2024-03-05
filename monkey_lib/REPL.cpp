@@ -4,6 +4,9 @@
 #include "Parser.h"
 
 void REPL::start() {
+  auto environment = std::make_shared<Environment>();
+  auto evaluator = Evaluator(environment);
+
   while (true) {
     std::cout << PROMPT;
     std::string line;
@@ -17,7 +20,7 @@ void REPL::start() {
       continue;
     }
 
-    auto evaluated = Evaluator().evaluate(program);
+    auto evaluated = evaluator.evaluate(program);
     if (evaluated != nullptr) {
       std::cout << evaluated->inspect() << std::endl;
     }

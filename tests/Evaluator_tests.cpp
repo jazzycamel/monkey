@@ -11,7 +11,8 @@ std::shared_ptr<Object> testEval(std::string input) {
   auto lexer = new Lexer(std::move(input));
   auto parser = new Parser(lexer);
   auto program = parser->parseProgram();
-  auto evaluator = Evaluator();
+  auto environment = std::make_shared<Environment>();
+  auto evaluator = Evaluator(environment);
   return evaluator.evaluate(program);
 }
 
@@ -154,12 +155,30 @@ TEST_CASE("Evaluator: errors") {
       {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
        "unknown operator: BOOLEAN + BOOLEAN"},
-  };
+      {"foobar", "identifier not found: foobar"}};
 
   for (const auto &test : tests) {
     auto evaluated = testEval(test.input);
     auto result = std::dynamic_pointer_cast<ErrorObject>(evaluated);
     REQUIRE(result != nullptr);
     REQUIRE(result->message == test.expectedMessage);
+  }
+}
+
+TEST_CASE("Evaluator: let statements") {
+  typedef struct {
+    std::string input;
+    int expected;
+  } LetStatementTest;
+
+  LetStatementTest tests[] = {
+      {"let a = 5; a;", 5},
+      {"let a = 5 * 5; a;", 25},
+      {"let a = 5; let b = a; b;", 5},
+      {"let a = 5; let b = a; let c = a + b + 5; c;", 15}};
+
+  for (const auto &test : tests) {
+    auto evaluated = testEval(test.input);
+    REQUIRE(testIntegerObject(evaluated, test.expected));
   }
 }

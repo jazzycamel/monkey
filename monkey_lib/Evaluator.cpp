@@ -3,6 +3,9 @@
 #include "utilities.h"
 #include <string>
 
+Evaluator::Evaluator(const std::shared_ptr<Environment> &environment)
+    : _environment(environment) {}
+
 std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
   std::shared_ptr<Object> result, result2;
 
@@ -47,6 +50,15 @@ std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
     if (_isError(result))
       return result;
     return std::make_shared<ReturnValueObject>(result);
+  case NodeType::LET_STATEMENT:
+    result = evaluate(std::dynamic_pointer_cast<LetStatement>(node)->value);
+    if (_isError(result))
+      return result;
+    _environment->set(
+        std::dynamic_pointer_cast<LetStatement>(node)->name->value, result);
+    return NULL_;
+  case NodeType::IDENTIFIER:
+    return _evaluateIdentifier(std::dynamic_pointer_cast<Identifier>(node));
   default:
     return nullptr;
   }
@@ -160,6 +172,15 @@ std::shared_ptr<Object> Evaluator::_evaluateBlockStatement(
     }
   }
   return result;
+}
+
+std::shared_ptr<Object>
+Evaluator::_evaluateIdentifier(const std::shared_ptr<Identifier> &node) {
+  auto value = _environment->get(node->value);
+  if (value != nullptr) {
+    return value;
+  }
+  return _newError("identifier not found: %s", node->value.c_str());
 }
 
 bool Evaluator::_isTruthy(const std::shared_ptr<Object> &obj) {
