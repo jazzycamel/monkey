@@ -30,6 +30,10 @@ private:
                                   const std::shared_ptr<Object> &left,
                                   const std::shared_ptr<Object> &right);
   std::shared_ptr<Object>
+  _evaluateStringInfixExpression(const std::string &op,
+                                 const std::shared_ptr<Object> &left,
+                                 const std::shared_ptr<Object> &right);
+  std::shared_ptr<Object>
   _evaluateIfExpression(const std::shared_ptr<IfExpression> &ie);
   std::shared_ptr<Object>
   _evaluateBlockStatement(const std::shared_ptr<BlockStatement> &block);

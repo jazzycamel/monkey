@@ -123,6 +123,9 @@ Evaluator::_evaluateInfixExpression(const std::string &op,
     return left == right ? TRUE_ : FALSE_;
   } else if (op == "!=") {
     return left != right ? TRUE_ : FALSE_;
+  } else if (left->type() == STRING_OBJ && right->type() == STRING_OBJ) {
+    return _evaluateStringInfixExpression(op, left, right);
+
   } else if (left->type() != right->type()) {
     return _newError("type mismatch: %s %s %s", left->type().c_str(),
                      op.c_str(), right->type().c_str());
@@ -156,6 +159,18 @@ std::shared_ptr<Object> Evaluator::_evaluateIntegerInfixExpression(
   }
   return _newError("unknown operator: %s %s %s", left->inspect().c_str(),
                    op.c_str(), right->inspect().c_str());
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateStringInfixExpression(
+    const std::string &op, const std::shared_ptr<Object> &left,
+    const std::shared_ptr<Object> &right) {
+  if (op != "+") {
+    return _newError("unknown operator: %s %s %s", left->type().c_str(),
+                     op.c_str(), right->type().c_str());
+  }
+  auto leftValue = std::dynamic_pointer_cast<StringObject>(left)->value;
+  auto rightValue = std::dynamic_pointer_cast<StringObject>(right)->value;
+  return std::make_shared<StringObject>(leftValue + rightValue);
 }
 
 std::shared_ptr<Object>

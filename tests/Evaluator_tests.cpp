@@ -155,7 +155,8 @@ TEST_CASE("Evaluator: errors") {
       {"if (10 > 1) { true + false; }", "unknown operator: BOOLEAN + BOOLEAN"},
       {"if (10 > 1) { if (10 > 1) { return true + false; } return 1; }",
        "unknown operator: BOOLEAN + BOOLEAN"},
-      {"foobar", "identifier not found: foobar"}};
+      {"foobar", "identifier not found: foobar"},
+      {R"("hello" - "world")", "unknown operator: STRING - STRING"}};
 
   for (const auto &test : tests) {
     auto evaluated = testEval(test.input);
@@ -222,6 +223,14 @@ TEST_CASE("Evaluator: closures") {
 
 TEST_CASE("Evaluator: string literal") {
   auto input = R"("hello world")";
+  auto evaluated = testEval(input);
+  auto result = std::dynamic_pointer_cast<StringObject>(evaluated);
+  REQUIRE(result != nullptr);
+  REQUIRE(result->value == "hello world");
+}
+
+TEST_CASE("Evaluator: string concatenation") {
+  auto input = R"("hello" + " " + "world")";
   auto evaluated = testEval(input);
   auto result = std::dynamic_pointer_cast<StringObject>(evaluated);
   REQUIRE(result != nullptr);
