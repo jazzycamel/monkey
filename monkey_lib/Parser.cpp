@@ -10,6 +10,7 @@ Parser::Parser(Lexer *lexer) : _lexer(lexer) {
 
   _registerPrefix(IDENT, &Parser::_parseIdentifier);
   _registerPrefix(INT, &Parser::_parseIntegerLiteralExpression);
+  _registerPrefix(STRING, &Parser::_parseStringLiteralExpression);
   _registerPrefix(BANG, &Parser::_parsePrefixExpression);
   _registerPrefix(MINUS, &Parser::_parsePrefixExpression);
   _registerPrefix(TRUE, &Parser::_parseBooleanLiteralExpression);
@@ -141,6 +142,13 @@ std::shared_ptr<Expression> Parser::_parseIntegerLiteralExpression() {
     return nullptr;
   }
   return std::make_shared<IntegerLiteralExpression>(literal);
+}
+
+std::shared_ptr<Expression> Parser::_parseStringLiteralExpression() {
+  StringLiteralExpression literal;
+  literal.token = _currentToken;
+  literal.value = _currentToken.literal;
+  return std::make_shared<StringLiteralExpression>(literal);
 }
 
 std::shared_ptr<Expression> Parser::_parsePrefixExpression() {

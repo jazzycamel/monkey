@@ -19,6 +19,9 @@ std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
   case NodeType::INTEGER_LITERAL:
     return std::make_shared<IntegerObject>(
         std::dynamic_pointer_cast<IntegerLiteralExpression>(node)->value);
+  case NodeType::STRING_LITERAL:
+    return std::make_shared<StringObject>(
+        std::dynamic_pointer_cast<StringLiteralExpression>(node)->value);
   case NodeType::BOOLEAN_LITERAL:
     return std::dynamic_pointer_cast<BooleanLiteralExpression>(node)->value
                ? TRUE_
@@ -59,6 +62,12 @@ std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
     return NULL_;
   case NodeType::IDENTIFIER:
     return _evaluateIdentifier(std::dynamic_pointer_cast<Identifier>(node));
+  case NodeType::FUNCTION_LITERAL:
+    return _evaluateFunctionLiteral(
+        std::dynamic_pointer_cast<FunctionLiteralExpression>(node));
+  case NodeType::CALL_EXPRESSION:
+    return _evaluateCallExpression(
+        std::dynamic_pointer_cast<CallExpression>(node));
   default:
     return nullptr;
   }
@@ -177,10 +186,73 @@ std::shared_ptr<Object> Evaluator::_evaluateBlockStatement(
 std::shared_ptr<Object>
 Evaluator::_evaluateIdentifier(const std::shared_ptr<Identifier> &node) {
   auto value = _environment->get(node->value);
-  if (value != nullptr) {
+  if (value->type() != NULL_OBJ) {
     return value;
   }
   return _newError("identifier not found: %s", node->value.c_str());
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateFunctionLiteral(
+    const std::shared_ptr<FunctionLiteralExpression> &node) {
+  return std::make_shared<FunctionObject>(node->parameters, node->body,
+                                          _environment);
+}
+
+std::vector<std::shared_ptr<Object>> Evaluator::_evaluateExpressions(
+    std::vector<std::shared_ptr<Expression>> arguments) {
+  std::vector<std::shared_ptr<Object>> result;
+
+  for (auto &argument : arguments) {
+    auto evaluated = evaluate(argument);
+    if (_isError(evaluated))
+      return {evaluated};
+    result.push_back(evaluated);
+  }
+
+  return result;
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateCallExpression(
+    const std::shared_ptr<CallExpression> &node) {
+  auto function = evaluate(node->function);
+  if (_isError(function))
+    return function;
+  auto arguments = _evaluateExpressions(node->arguments);
+  if (arguments.size() == 1 && _isError(arguments[0]))
+    return arguments[0];
+  return _applyFunction(function, arguments);
+}
+
+std::shared_ptr<Object> Evaluator::_applyFunction(
+    const std::shared_ptr<Object> &function,
+    const std::vector<std::shared_ptr<Object>> &arguments) {
+  if (function->type() == FUNCTION_OBJ) {
+    auto fn = std::dynamic_pointer_cast<FunctionObject>(function);
+    auto extendedEnv = _extendFunctionEnvironment(fn, arguments);
+    Evaluator _evaluator(extendedEnv);
+    auto evaluated = _evaluator.evaluate(fn->body);
+    return _unwrapReturnValue(evaluated);
+  }
+  return _newError("not a function: %s", function->type().c_str());
+}
+
+std::shared_ptr<Environment> Evaluator::_extendFunctionEnvironment(
+    const std::shared_ptr<FunctionObject> &function,
+    const std::vector<std::shared_ptr<Object>> &arguments) {
+
+  auto environment = function->environment->createEnclosedEnvironment();
+  for (size_t i = 0; i < function->parameters.size(); i++) {
+    function->environment->set(function->parameters[i]->value, arguments[i]);
+  }
+  return environment;
+}
+
+std::shared_ptr<Object>
+Evaluator::_unwrapReturnValue(const std::shared_ptr<Object> &object) {
+  if (object->type() == RETURN_VALUE_OBJ) {
+    return std::dynamic_pointer_cast<ReturnValueObject>(object)->value;
+  }
+  return object;
 }
 
 bool Evaluator::_isTruthy(const std::shared_ptr<Object> &obj) {

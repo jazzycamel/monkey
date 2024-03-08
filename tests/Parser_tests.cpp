@@ -483,3 +483,23 @@ TEST_CASE("Parser: call expression") {
   REQUIRE(testInfixExpression(call->arguments[1], 2, "*", 3));
   REQUIRE(testInfixExpression(call->arguments[2], 4, "+", 5));
 }
+
+TEST_CASE("Parser: string literal expression") {
+  std::string input = R"("hello world")";
+
+  auto lexer = new Lexer(input);
+  auto parser = new Parser(lexer);
+  auto program = parser->parseProgram();
+  checkErrors(parser->errors());
+
+  REQUIRE(program->statements.size() == 1);
+  auto expressionStatement =
+      dynamic_cast<ExpressionStatement *>(program->statements[0].get());
+  REQUIRE(expressionStatement != nullptr);
+
+  auto literal = dynamic_cast<StringLiteralExpression *>(
+      expressionStatement->expression.get());
+  REQUIRE(literal != nullptr);
+  REQUIRE(literal->value == "hello world");
+  REQUIRE(literal->tokenLiteral() == "hello world");
+}

@@ -13,6 +13,7 @@ enum NodeType {
   EXPRESSION_STATEMENT,
   IDENTIFIER,
   INTEGER_LITERAL,
+  STRING_LITERAL,
   PREFIX_EXPRESSION,
   INFIX_EXPRESSION,
   BOOLEAN_LITERAL,
@@ -101,6 +102,17 @@ public:
 
   Token token;
   int64_t value;
+};
+
+class StringLiteralExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+  NodeType nodeType() override;
+
+  Token token;
+  std::string value;
 };
 
 class PrefixExpression : public Expression {

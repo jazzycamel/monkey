@@ -35,12 +35,26 @@ private:
   _evaluateBlockStatement(const std::shared_ptr<BlockStatement> &block);
   std::shared_ptr<Object>
   _evaluateIdentifier(const std::shared_ptr<Identifier> &node);
+  std::shared_ptr<Object> _evaluateFunctionLiteral(
+      const std::shared_ptr<FunctionLiteralExpression> &node);
+  std::shared_ptr<Object>
+  _evaluateCallExpression(const std::shared_ptr<CallExpression> &node);
+  std::vector<std::shared_ptr<Object>>
+  _evaluateExpressions(std::vector<std::shared_ptr<Expression>> arguments);
+  std::shared_ptr<Object>
+  _applyFunction(const std::shared_ptr<Object> &function,
+                 const std::vector<std::shared_ptr<Object>> &arguments);
+  std::shared_ptr<Environment> _extendFunctionEnvironment(
+      const std::shared_ptr<FunctionObject> &function,
+      const std::vector<std::shared_ptr<Object>> &arguments);
+  std::shared_ptr<Object>
+  _unwrapReturnValue(const std::shared_ptr<Object> &object);
 
   static bool _isTruthy(const std::shared_ptr<Object> &obj);
 
   template <typename... Args>
   std::shared_ptr<Object> _newError(const std::string &format, Args &&...args);
-  bool _isError(const std::shared_ptr<Object> &obj);
+  static bool _isError(const std::shared_ptr<Object> &obj);
 
   std::shared_ptr<Environment> _environment;
 };

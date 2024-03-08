@@ -19,6 +19,8 @@ private:
 
   std::string _readIdentifier();
 
+  std::string _readString();
+
   static bool _isDigit(char ch);
 
   static bool _isLetter(char ch);

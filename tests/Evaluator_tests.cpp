@@ -182,3 +182,48 @@ TEST_CASE("Evaluator: let statements") {
     REQUIRE(testIntegerObject(evaluated, test.expected));
   }
 }
+
+TEST_CASE("Evaluator: function object") {
+  auto input = "fn(x) { x + 2; };";
+  auto evaluated = testEval(input);
+  auto result = std::dynamic_pointer_cast<FunctionObject>(evaluated);
+  REQUIRE(result != nullptr);
+  REQUIRE(result->parameters.size() == 1);
+  REQUIRE(result->parameters[0]->string() == "x");
+  REQUIRE(result->body->string() == "(x + 2)");
+}
+
+TEST_CASE("Evaluator: function application") {
+  typedef struct {
+    std::string input;
+    int64_t expected;
+  } FunctionTest;
+
+  FunctionTest tests[] = {
+      {"let identity = fn(x) { x; }; identity(5);", 5},
+      {"let identity = fn(x) { return x; }; identity(5);", 5},
+      {"let double = fn(x) { x * 2; }; double(5);", 10},
+      {"let add = fn(x, y) { x + y; }; add(5, 5);", 10},
+      {"let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20},
+      {"fn(x) { x; }(5)", 5}};
+
+  for (auto &test : tests) {
+    auto evaluated = testEval(test.input);
+    REQUIRE(testIntegerObject(evaluated, test.expected));
+  }
+}
+
+TEST_CASE("Evaluator: closures") {
+  auto input = "let newAdder = fn(x) { fn(y) { x + y }; }; let addTwo = "
+               "newAdder(2); addTwo(x);";
+  auto evaluated = testEval(input);
+  REQUIRE(testIntegerObject(evaluated, 4));
+}
+
+TEST_CASE("Evaluator: string literal") {
+  auto input = R"("hello world")";
+  auto evaluated = testEval(input);
+  auto result = std::dynamic_pointer_cast<StringObject>(evaluated);
+  REQUIRE(result != nullptr);
+  REQUIRE(result->value == "hello world");
+}

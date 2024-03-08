@@ -14,7 +14,7 @@ typedef struct {
 const TokenType ILLEGAL = "ILLEGAL", EOF_ = "EOF",
 
                 // Identifiers and literals
-    IDENT = "IDENT", INT = "INT",
+    IDENT = "IDENT", INT = "INT", STRING = "STRING",
 
                 // Operators
     ASSIGN = "=", PLUS = "+", MINUS = "-", BANG = "!", ASTERISK = "*",

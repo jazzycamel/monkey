@@ -4,11 +4,16 @@
 #include <memory>
 #include <string>
 
+#include "AST.h"
+
+class Environment;
+
 typedef std::string ObjectType;
 
 const ObjectType ERROR_OBJ = "ERROR", INTEGER_OBJ = "INTEGER",
-                 BOOLEAN_OBJ = "BOOLEAN", NULL_OBJ = "NULL",
-                 RETURN_VALUE_OBJ = "RETURN_VALUE";
+                 STRING_OBJ = "STRING", BOOLEAN_OBJ = "BOOLEAN",
+                 NULL_OBJ = "NULL", RETURN_VALUE_OBJ = "RETURN_VALUE",
+                 FUNCTION_OBJ = "FUNCTION";
 
 class Object {
 public:
@@ -34,6 +39,15 @@ public:
   int64_t value;
 };
 
+class StringObject : public Object {
+public:
+  explicit StringObject(std::string value = "");
+  ObjectType type() override;
+  std::string inspect() override;
+
+  std::string value;
+};
+
 class BooleanObject : public Object {
 public:
   explicit BooleanObject(bool value = false);
@@ -56,6 +70,19 @@ public:
   std::string inspect() override;
 
   std::shared_ptr<Object> value;
+};
+
+class FunctionObject : public Object {
+public:
+  explicit FunctionObject(std::vector<std::shared_ptr<Identifier>> parameters,
+                          std::shared_ptr<BlockStatement> body,
+                          std::shared_ptr<Environment> environment);
+  ObjectType type() override;
+  std::string inspect() override;
+
+  std::vector<std::shared_ptr<Identifier>> parameters;
+  std::shared_ptr<BlockStatement> body;
+  std::shared_ptr<Environment> environment;
 };
 
 const auto NULL_ = std::make_shared<NullObject>();

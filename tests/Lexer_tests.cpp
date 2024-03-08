@@ -24,6 +24,9 @@ if (5 < 10) {
 
 10 == 10;
 10 != 9;
+
+"foobar"
+"foo bar"
 )";
 
   Token tests[] = {
@@ -51,7 +54,8 @@ if (5 < 10) {
       {SEMICOLON, ";"},  {RBRACE, "}"},      {INT, "10"},
       {EQ, "=="},        {INT, "10"},        {SEMICOLON, ";"},
       {INT, "10"},       {NOT_EQ, "!="},     {INT, "9"},
-      {SEMICOLON, ";"},  {EOF_, ""},
+      {SEMICOLON, ";"},  {STRING, "foobar"}, {STRING, "foo bar"},
+      {EOF_, ""},
   };
 
   auto *lexer = new Lexer(input);

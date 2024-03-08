@@ -60,6 +60,11 @@ void IntegerLiteralExpression::expressionNode() {}
 NodeType IntegerLiteralExpression::nodeType() { return INTEGER_LITERAL; }
 std::string IntegerLiteralExpression::string() { return token.literal; }
 
+std::string StringLiteralExpression::tokenLiteral() { return token.literal; }
+void StringLiteralExpression::expressionNode() {}
+NodeType StringLiteralExpression::nodeType() { return STRING_LITERAL; }
+std::string StringLiteralExpression::string() { return token.literal; }
+
 std::string PrefixExpression::tokenLiteral() { return token.literal; }
 void PrefixExpression::expressionNode() {}
 NodeType PrefixExpression::nodeType() { return PREFIX_EXPRESSION; }

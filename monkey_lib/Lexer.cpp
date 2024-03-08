@@ -69,6 +69,10 @@ Token Lexer::nextToken() {
   case '>':
     token.type = GT;
     break;
+  case '"':
+    token.type = STRING;
+    token.literal = _readString();
+    break;
   case 0:
     token.literal = "";
     token.type = EOF_;
@@ -116,6 +120,14 @@ std::string Lexer::_readIdentifier() {
   auto position = _position;
   while (_isLetter(_ch))
     _readChar();
+  return _input.substr(position, _position - position);
+}
+
+std::string Lexer::_readString() {
+  auto position = _position + 1;
+  do {
+    _readChar();
+  } while (_ch != '"' && _ch != 0);
   return _input.substr(position, _position - position);
 }
 

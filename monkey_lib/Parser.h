@@ -49,6 +49,8 @@ private:
 
   std::shared_ptr<Expression> _parseIntegerLiteralExpression();
 
+  std::shared_ptr<Expression> _parseStringLiteralExpression();
+
   std::shared_ptr<Expression> _parsePrefixExpression();
 
   std::shared_ptr<Expression>
