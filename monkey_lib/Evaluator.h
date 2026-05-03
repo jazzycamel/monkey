@@ -5,6 +5,11 @@
 #include "Environment.h"
 #include "Object.h"
 #include <memory>
+#include <unordered_map>
+
+
+extern const std::unordered_map<std::string, BuiltinObject> builtins;
+
 
 class Evaluator {
 public:

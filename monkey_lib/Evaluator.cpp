@@ -1,7 +1,33 @@
 #include "Evaluator.h"
 
+#include "Object.h"
 #include "utilities.h"
+#include <cstring>
+#include <memory>
 #include <string>
+#include <unordered_map>
+
+
+
+// XXX - Maybe this should be part of the evaluator class?
+// We definietely should not be duplicating the error raising mechanism
+const std::unordered_map<std::string, BuiltinObject> builtins = {
+  {"len", 
+    BuiltinObject{[](const std::vector<std::shared_ptr<Object>>& args)->std::shared_ptr<Object>{
+      if(args.size() != 1){
+        return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=1", args.size()));
+      }
+
+      if(args[0]->type() == STRING_OBJ){
+        auto stringObject = std::dynamic_pointer_cast<StringObject>(args[0]);
+        return std::make_shared<IntegerObject>(IntegerObject(stringObject->value.length())); 
+      }
+
+      return std::make_shared<ErrorObject>(string_format("argument to `len` not supported, got %s", args[0]->type().c_str()));
+    }}
+  }
+};
+
 
 Evaluator::Evaluator(const std::shared_ptr<Environment> &environment)
     : _environment(environment) {}
@@ -204,6 +230,11 @@ Evaluator::_evaluateIdentifier(const std::shared_ptr<Identifier> &node) {
   if (value->type() != NULL_OBJ) {
     return value;
   }
+
+  if (builtins.contains(node->value)){
+    return std::make_shared<BuiltinObject>(builtins.at(node->value));
+  }
+
   return _newError("identifier not found: %s", node->value.c_str());
 }
 
@@ -247,6 +278,10 @@ std::shared_ptr<Object> Evaluator::_applyFunction(
     Evaluator _evaluator(extendedEnv);
     auto evaluated = _evaluator.evaluate(fn->body);
     return _unwrapReturnValue(evaluated);
+  }
+  if (function->type() == BUILTIN_OBJ) {
+    auto builtin = std::dynamic_pointer_cast<BuiltinObject>(function);
+    return builtin->value(arguments);
   }
   return _newError("not a function: %s", function->type().c_str());
 }

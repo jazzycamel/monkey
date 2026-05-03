@@ -47,3 +47,7 @@ std::string FunctionObject::inspect() {
   out += "\n}";
   return out;
 }
+
+BuiltinObject::BuiltinObject(BuiltinFunction value) : value(std::move(value)) {}
+ObjectType BuiltinObject::type() { return BUILTIN_OBJ; }
+std::string BuiltinObject::inspect() { return "builtin function"; }

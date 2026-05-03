@@ -236,3 +236,30 @@ TEST_CASE("Evaluator: string concatenation") {
   REQUIRE(result != nullptr);
   REQUIRE(result->value == "hello world");
 }
+
+TEST_CASE("Evaluator: builtin functions") {
+  typedef struct {
+    std::string input;
+    int64_t expected;
+    std::string expectedMessage;
+  } BuiltinTests;
+
+  BuiltinTests tests[] = {
+    {R"(len(""))", 0, ""},
+    {R"(len("four"))", 4, ""},
+    {R"(len("hello world"))", 11, ""},
+    {R"(len(1))", -1, "argument to `len` not supported, got INTEGER"},
+    {R"(len("one", "two"))", -1, "wrong number of arguments, got=2, want=1"},
+  };
+
+  for(auto test : tests) {
+    auto evaluated = testEval(test.input);
+    if(test.expected >= 0) {
+      REQUIRE(testIntegerObject(evaluated, test.expected));
+    } else {
+      auto result = std::dynamic_pointer_cast<ErrorObject>(evaluated);
+      REQUIRE(result != nullptr);
+      REQUIRE(result->message == test.expectedMessage);
+    }
+  }
+}

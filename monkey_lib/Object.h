@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <string>
+#include <functional>
 
 #include "AST.h"
 
@@ -13,7 +14,7 @@ typedef std::string ObjectType;
 const ObjectType ERROR_OBJ = "ERROR", INTEGER_OBJ = "INTEGER",
                  STRING_OBJ = "STRING", BOOLEAN_OBJ = "BOOLEAN",
                  NULL_OBJ = "NULL", RETURN_VALUE_OBJ = "RETURN_VALUE",
-                 FUNCTION_OBJ = "FUNCTION";
+                 FUNCTION_OBJ = "FUNCTION", BUILTIN_OBJ = "BUILTIN";
 
 class Object {
 public:
@@ -84,6 +85,22 @@ public:
   std::shared_ptr<BlockStatement> body;
   std::shared_ptr<Environment> environment;
 };
+
+
+using BuiltinFunction = std::function<std::shared_ptr<Object>(
+  const std::vector<std::shared_ptr<Object>>& args
+)>;
+
+
+class BuiltinObject : public Object {
+public:
+  explicit BuiltinObject(BuiltinFunction value);
+  ObjectType type() override;
+  std::string inspect() override;
+
+  BuiltinFunction value;
+};
+
 
 const auto NULL_ = std::make_shared<NullObject>();
 const auto TRUE_ = std::make_shared<BooleanObject>(true);
