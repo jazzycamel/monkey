@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 23)
 
 add_executable(monkey main.cpp)
 
-include_directories(Monkey_lib)
-add_subdirectory(Monkey_lib)
+include_directories(monkey_lib)
+add_subdirectory(monkey_lib)
 
 target_link_libraries(monkey Monkey_lib)
 
