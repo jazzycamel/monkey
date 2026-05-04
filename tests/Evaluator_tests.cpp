@@ -1,8 +1,10 @@
 #include <catch2/catch_test_macros.hpp>
+#include <memory>
 #include <utility>
 
 #include "Evaluator.h"
 #include "Lexer.h"
+#include "Object.h"
 #include "Parser.h"
 #include <any>
 #include <iostream>
@@ -260,6 +262,45 @@ TEST_CASE("Evaluator: builtin functions") {
       auto result = std::dynamic_pointer_cast<ErrorObject>(evaluated);
       REQUIRE(result != nullptr);
       REQUIRE(result->message == test.expectedMessage);
+    }
+  }
+}
+
+TEST_CASE("Evaluator: array literal"){
+  auto input = R"([1, 2 * 2, 3 + 3])";
+  auto evaluated = testEval(input);
+  auto result = std::dynamic_pointer_cast<ArrayObject>(evaluated);
+  REQUIRE(result != nullptr);
+  REQUIRE(result->elements.size() == 3);
+  testIntegerObject(result->elements[0], 1);
+  testIntegerObject(result->elements[1], 4);
+  testIntegerObject(result->elements[2], 6);
+}
+
+TEST_CASE("Evaluator: array index expressions"){\
+  typedef struct {
+    std::string input;
+    int64_t expected;
+  } IndexTest;
+  IndexTest tests[] = {
+    {"[1, 2, 3][0]", 1,},
+    {"[1, 2, 3][1]",2,},
+    {"[1, 2, 3][2]",3,},
+    {"let i = 0; [1][i];",1,},
+    {"[1, 2, 3][1 + 1];",3,},
+    {"let myArray = [1, 2, 3]; myArray[2];",3,},
+    {"let myArray = [1, 2, 3]; myArray[0] + myArray[1] + myArray[2];",6,},
+    {"let myArray = [1, 2, 3]; let i = myArray[0]; myArray[i]",2,},
+    {"[1, 2, 3][3]",-1,},
+    {"[1, 2, 3][-1]",-1,},
+  };
+
+  for (auto test : tests) {
+    auto evaluated = testEval(test.input);
+    if (test.expected >= 0) {
+      REQUIRE(testIntegerObject(evaluated, test.expected));
+    } else {
+      REQUIRE(testNullObject(evaluated));
     }
   }
 }

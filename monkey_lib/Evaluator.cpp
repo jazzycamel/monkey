@@ -1,5 +1,6 @@
 #include "Evaluator.h"
 
+#include "AST.h"
 #include "Object.h"
 #include "utilities.h"
 #include <cstring>
@@ -18,12 +19,88 @@ const std::unordered_map<std::string, BuiltinObject> builtins = {
         return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=1", args.size()));
       }
 
+      if(args[0]->type() == ARRAY_OBJ){
+        auto arrayObject = std::dynamic_pointer_cast<ArrayObject>(args[0]);
+        return std::make_shared<IntegerObject>(arrayObject->elements.size());
+      }
       if(args[0]->type() == STRING_OBJ){
         auto stringObject = std::dynamic_pointer_cast<StringObject>(args[0]);
-        return std::make_shared<IntegerObject>(IntegerObject(stringObject->value.length())); 
+        return std::make_shared<IntegerObject>(stringObject->value.length()); 
       }
 
       return std::make_shared<ErrorObject>(string_format("argument to `len` not supported, got %s", args[0]->type().c_str()));
+    }}
+  },
+  {"first",
+    BuiltinObject{[](const std::vector<std::shared_ptr<Object>>& args)->std::shared_ptr<Object>{
+      if(args.size() != 1){
+        return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=1", args.size()));
+      }
+
+      if (args[0]->type() != ARRAY_OBJ){
+        return std::make_shared<ErrorObject>(string_format("argument to `first` must be ARRAY, got %s", args[0]->type().c_str()));
+      }
+
+      auto arr = std::dynamic_pointer_cast<ArrayObject>(args[0]);
+      if (arr->elements.size() > 0) {
+        return arr->elements[0];
+      }
+
+      return NULL_;
+    }}
+  },
+  {"last",
+    BuiltinObject{[](const std::vector<std::shared_ptr<Object>>& args)->std::shared_ptr<Object>{
+      if(args.size() != 1){
+        return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=1", args.size()));
+      }
+
+      if (args[0]->type() != ARRAY_OBJ){
+        return std::make_shared<ErrorObject>(string_format("argument to `last` must be ARRAY, got %s", args[0]->type().c_str()));
+      }
+
+      auto arr = std::dynamic_pointer_cast<ArrayObject>(args[0]);
+      auto length = arr->elements.size();
+      if (length > 0) {
+        return arr->elements[length-1];
+      }
+
+      return NULL_;
+    }}
+  },
+  {"rest",
+    BuiltinObject{[](const std::vector<std::shared_ptr<Object>>& args)->std::shared_ptr<Object>{
+      if(args.size() != 1){
+        return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=1", args.size()));
+      }
+
+      if (args[0]->type() != ARRAY_OBJ){
+        return std::make_shared<ErrorObject>(string_format("argument to `rest` must be ARRAY, got %s", args[0]->type().c_str()));
+      }
+
+      auto arr = std::dynamic_pointer_cast<ArrayObject>(args[0]);
+      auto length = arr->elements.size();
+      if (length > 0) {
+        std::vector<std::shared_ptr<Object>> slice(arr->elements.begin() + 1, arr->elements.end());
+        return std::make_shared<ArrayObject>(slice);
+      }
+
+      return NULL_;
+    }}
+  },
+  {"push",
+    BuiltinObject{[](const std::vector<std::shared_ptr<Object>>& args)->std::shared_ptr<Object>{
+      if(args.size() != 2){
+        return std::make_shared<ErrorObject>(string_format("wrong number of arguments, got=%d, want=2", args.size()));
+      }
+
+      if (args[0]->type() != ARRAY_OBJ){
+        return std::make_shared<ErrorObject>(string_format("argument to `push` must be ARRAY, got %s", args[0]->type().c_str()));
+      }
+
+      auto arr = std::dynamic_pointer_cast<ArrayObject>(args[0]);      
+      arr->elements.push_back(args[1]);
+      return std::make_shared<ArrayObject>(arr->elements);
     }}
   }
 };
@@ -32,7 +109,7 @@ const std::unordered_map<std::string, BuiltinObject> builtins = {
 Evaluator::Evaluator(const std::shared_ptr<Environment> &environment)
     : _environment(environment) {}
 
-std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
+std::shared_ptr<Object> Evaluator::evaluate(const NodePtr &node) {
   std::shared_ptr<Object> result, result2;
 
   switch (node->nodeType()) {
@@ -94,13 +171,33 @@ std::shared_ptr<Object> Evaluator::evaluate(const std::shared_ptr<Node> &node) {
   case NodeType::CALL_EXPRESSION:
     return _evaluateCallExpression(
         std::dynamic_pointer_cast<CallExpression>(node));
+  case NodeType::ARRAY_LITERAL: {
+    auto array = std::dynamic_pointer_cast<ArrayLiteralExpression>(node);
+    auto elements = _evaluateExpressions(array->elements);
+    if (elements.size() == 1 && _isError(elements[0])) {
+      return elements[0];
+    }
+    return std::make_shared<ArrayObject>(elements);
+  }
+  case NodeType::INDEX_EXPRESSION: {
+    auto indexExpression = std::dynamic_pointer_cast<IndexExpression>(node);
+    auto left = evaluate(indexExpression->left);
+    if (_isError(left)) {
+      return left;
+    }
+    auto index = evaluate(indexExpression->index);
+    if (_isError(index)) {
+      return index;
+    }
+    return _evaluateIndexExpression(left, index);
+  }
   default:
     return nullptr;
   }
 }
 
 std::shared_ptr<Object> Evaluator::_evaluateProgram(
-    const std::vector<std::shared_ptr<Statement>> &statements) {
+    const StatementPtrVec &statements) {
   std::shared_ptr<Object> result;
   for (const auto &statement : statements) {
     result = evaluate(statement);
@@ -200,7 +297,7 @@ std::shared_ptr<Object> Evaluator::_evaluateStringInfixExpression(
 }
 
 std::shared_ptr<Object>
-Evaluator::_evaluateIfExpression(const std::shared_ptr<IfExpression> &ie) {
+Evaluator::_evaluateIfExpression(const IfExpressionPtr &ie) {
   auto condition = evaluate(ie->condition);
   if (_isError(condition))
     return condition;
@@ -213,7 +310,7 @@ Evaluator::_evaluateIfExpression(const std::shared_ptr<IfExpression> &ie) {
 }
 
 std::shared_ptr<Object> Evaluator::_evaluateBlockStatement(
-    const std::shared_ptr<BlockStatement> &block) {
+    const BlockStatementPtr &block) {
   std::shared_ptr<Object> result;
   for (const auto &statement : block->statements) {
     result = evaluate(statement);
@@ -225,7 +322,7 @@ std::shared_ptr<Object> Evaluator::_evaluateBlockStatement(
 }
 
 std::shared_ptr<Object>
-Evaluator::_evaluateIdentifier(const std::shared_ptr<Identifier> &node) {
+Evaluator::_evaluateIdentifier(const IdentifierPtr &node) {
   auto value = _environment->get(node->value);
   if (value->type() != NULL_OBJ) {
     return value;
@@ -239,13 +336,13 @@ Evaluator::_evaluateIdentifier(const std::shared_ptr<Identifier> &node) {
 }
 
 std::shared_ptr<Object> Evaluator::_evaluateFunctionLiteral(
-    const std::shared_ptr<FunctionLiteralExpression> &node) {
+    const FunctionLiteralExpressionPtr &node) {
   return std::make_shared<FunctionObject>(node->parameters, node->body,
                                           _environment);
 }
 
 std::vector<std::shared_ptr<Object>> Evaluator::_evaluateExpressions(
-    std::vector<std::shared_ptr<Expression>> arguments) {
+    ExpressionPtrVec arguments) {
   std::vector<std::shared_ptr<Object>> result;
 
   for (auto &argument : arguments) {
@@ -259,7 +356,7 @@ std::vector<std::shared_ptr<Object>> Evaluator::_evaluateExpressions(
 }
 
 std::shared_ptr<Object> Evaluator::_evaluateCallExpression(
-    const std::shared_ptr<CallExpression> &node) {
+    const CallExpressionPtr &node) {
   auto function = evaluate(node->function);
   if (_isError(function))
     return function;
@@ -267,6 +364,23 @@ std::shared_ptr<Object> Evaluator::_evaluateCallExpression(
   if (arguments.size() == 1 && _isError(arguments[0]))
     return arguments[0];
   return _applyFunction(function, arguments);
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateIndexExpression(std::shared_ptr<Object> left, std::shared_ptr<Object> index){
+  if (left->type() == ARRAY_OBJ && index->type() == INTEGER_OBJ) {
+    return _evaluateArrayIndexExpression(left, index);
+  }
+  return _newError("index operator not supported: %s", left->type().c_str());
+}
+
+std::shared_ptr<Object> Evaluator::_evaluateArrayIndexExpression(std::shared_ptr<Object> array, std::shared_ptr<Object> index) {
+  auto arrayObject = std::dynamic_pointer_cast<ArrayObject>(array);
+  auto indexObject = std::dynamic_pointer_cast<IntegerObject>(index);
+  auto idx = indexObject->value;
+  auto max = arrayObject->elements.size() - 1;
+
+  if (idx < 0 || idx > max) return NULL_;
+  return arrayObject->elements[idx];
 }
 
 std::shared_ptr<Object> Evaluator::_applyFunction(

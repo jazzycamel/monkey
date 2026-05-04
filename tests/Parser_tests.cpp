@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "AST.h"
 #include "Lexer.h"
 #include "Parser.h"
 
@@ -15,7 +16,7 @@ void checkErrors(const std::vector<std::string> &errors) {
   REQUIRE(errors.empty());
 }
 
-bool testIntegerLiteral(const std::shared_ptr<Expression> &expression,
+bool testIntegerLiteral(const ExpressionPtr &expression,
                         const int64_t value) {
   auto literal = dynamic_cast<IntegerLiteralExpression *>(expression.get());
   REQUIRE(literal != nullptr);
@@ -23,7 +24,7 @@ bool testIntegerLiteral(const std::shared_ptr<Expression> &expression,
   return true;
 }
 
-bool testIdentifier(const std::shared_ptr<Expression> &expression,
+bool testIdentifier(const ExpressionPtr &expression,
                     const std::string &value) {
   auto identifier = dynamic_cast<Identifier *>(expression.get());
   REQUIRE(identifier != nullptr);
@@ -32,7 +33,7 @@ bool testIdentifier(const std::shared_ptr<Expression> &expression,
   return true;
 }
 
-bool testBooleanLiteral(const std::shared_ptr<Expression> &expression,
+bool testBooleanLiteral(const ExpressionPtr &expression,
                         const bool value) {
   auto boolean = dynamic_cast<BooleanLiteralExpression *>(expression.get());
   REQUIRE(boolean != nullptr);
@@ -41,7 +42,7 @@ bool testBooleanLiteral(const std::shared_ptr<Expression> &expression,
   return true;
 }
 
-bool testLiteralExpression(const std::shared_ptr<Expression> &expression,
+bool testLiteralExpression(const ExpressionPtr &expression,
                            const std::any &value) {
   if (value.type() == typeid(int)) {
     return testIntegerLiteral(expression, (int64_t)std::any_cast<int>(value));
@@ -55,7 +56,7 @@ bool testLiteralExpression(const std::shared_ptr<Expression> &expression,
   return false;
 }
 
-bool testInfixExpression(const std::shared_ptr<Expression> &expression,
+bool testInfixExpression(const ExpressionPtr &expression,
                          const std::any &left, std::string operator_,
                          const std::any &right) {
   auto infix = dynamic_cast<InfixExpression *>(expression.get());
@@ -66,7 +67,7 @@ bool testInfixExpression(const std::shared_ptr<Expression> &expression,
   return true;
 }
 
-bool testLetStatement(const std::shared_ptr<Statement> &statement,
+bool testLetStatement(const StatementPtr &statement,
                       const std::string &name) {
   REQUIRE(statement->tokenLiteral() == "let");
   auto letStatement = dynamic_cast<LetStatement *>(statement.get());
@@ -299,6 +300,8 @@ TEST_CASE("Parser: operator precedence") {
       {"add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
        "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))"},
       {"add(a + b + c * d / f + g)", "add((((a + b) + ((c * d) / f)) + g))"},
+      {"a * [1, 2, 3, 4][b * c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)",},
+      {"add(a * b[2], b[1], 2 * [1, 2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))",},
   };
 
   for (const auto &tt : precedenceTests) {
@@ -502,4 +505,46 @@ TEST_CASE("Parser: string literal expression") {
   REQUIRE(literal != nullptr);
   REQUIRE(literal->value == "hello world");
   REQUIRE(literal->tokenLiteral() == "hello world");
+}
+
+TEST_CASE("Parser: array literal expression"){
+  std::string input = R"([1, 2 * 2, 3 + 3])";
+
+  auto lexer = new Lexer(input);
+  auto parser = new Parser(lexer);
+  auto program = parser->parseProgram();
+  checkErrors(parser->errors());
+
+  REQUIRE(program->statements.size() == 1);
+  auto expressionStatement = 
+      dynamic_cast<ExpressionStatement *>(program->statements[0].get());
+  REQUIRE(expressionStatement != nullptr);
+
+  auto literal = dynamic_cast<ArrayLiteralExpression *>(
+      expressionStatement->expression.get());
+  REQUIRE(literal->elements.size() == 3);
+  testIntegerLiteral(literal->elements[0], 1);
+  testInfixExpression(literal->elements[1], 2, "*", 2);
+  testInfixExpression(literal->elements[2], 3, "+", 3);
+}
+
+TEST_CASE("Parser: index expression"){
+  std::string input = R"(myArray[1 + 1])";
+
+  auto lexer = new Lexer(input);
+  auto parser = new Parser(lexer);
+  auto program = parser->parseProgram();
+  checkErrors(parser->errors());
+
+  //REQUIRE(program->statements.size() == 1);
+  auto expressionStatement = 
+      dynamic_cast<ExpressionStatement *>(program->statements[0].get());
+  REQUIRE(expressionStatement != nullptr);
+
+  auto indexExpression = dynamic_cast<IndexExpression *>(
+      expressionStatement->expression.get()
+  );
+  REQUIRE(indexExpression != nullptr);
+  testIdentifier(indexExpression->left, "myArray");
+  testInfixExpression(indexExpression->index, 1, "+", 1);
 }

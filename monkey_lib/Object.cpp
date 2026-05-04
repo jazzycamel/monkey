@@ -1,5 +1,6 @@
 #include "Object.h"
 
+#include <memory>
 #include <utility>
 
 ErrorObject::ErrorObject(std::string message) : message(std::move(message)) {}
@@ -27,8 +28,8 @@ ObjectType ReturnValueObject::type() { return RETURN_VALUE_OBJ; }
 std::string ReturnValueObject::inspect() { return value->inspect(); }
 
 FunctionObject::FunctionObject(
-    std::vector<std::shared_ptr<Identifier>> parameters,
-    std::shared_ptr<BlockStatement> body,
+    IdentifierPtrVec parameters,
+    BlockStatementPtr body,
     std::shared_ptr<Environment> environment)
     : parameters(std::move(parameters)), body(std::move(body)),
       environment(std::move(environment)) {}
@@ -51,3 +52,15 @@ std::string FunctionObject::inspect() {
 BuiltinObject::BuiltinObject(BuiltinFunction value) : value(std::move(value)) {}
 ObjectType BuiltinObject::type() { return BUILTIN_OBJ; }
 std::string BuiltinObject::inspect() { return "builtin function"; }
+
+ArrayObject::ArrayObject(std::vector<std::shared_ptr<Object>> elements) : elements(std::move(elements)) {}
+ObjectType ArrayObject::type() { return ARRAY_OBJ; }
+std::string ArrayObject::inspect() {
+  std::string out = "[";
+  for (size_t i = 0; i < elements.size(); i++) {
+    out += elements[i]->inspect();
+    if (i != elements.size() -1 ) out += ", ";
+  }
+  out += "]";
+  return out;
+}

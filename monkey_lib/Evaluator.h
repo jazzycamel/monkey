@@ -14,11 +14,11 @@ extern const std::unordered_map<std::string, BuiltinObject> builtins;
 class Evaluator {
 public:
   explicit Evaluator(const std::shared_ptr<Environment> &environment);
-  std::shared_ptr<Object> evaluate(const std::shared_ptr<Node> &node);
+  std::shared_ptr<Object> evaluate(const NodePtr &node);
 
 private:
   std::shared_ptr<Object>
-  _evaluateProgram(const std::vector<std::shared_ptr<Statement>> &statements);
+  _evaluateProgram(const StatementPtrVec &statements);
   std::shared_ptr<Object>
   _evaluatePrefixExpression(const std::string &op,
                             const std::shared_ptr<Object> &right);
@@ -39,17 +39,21 @@ private:
                                  const std::shared_ptr<Object> &left,
                                  const std::shared_ptr<Object> &right);
   std::shared_ptr<Object>
-  _evaluateIfExpression(const std::shared_ptr<IfExpression> &ie);
+  _evaluateIfExpression(const IfExpressionPtr &ie);
   std::shared_ptr<Object>
-  _evaluateBlockStatement(const std::shared_ptr<BlockStatement> &block);
+  _evaluateBlockStatement(const BlockStatementPtr &block);
   std::shared_ptr<Object>
-  _evaluateIdentifier(const std::shared_ptr<Identifier> &node);
+  _evaluateIdentifier(const IdentifierPtr &node);
   std::shared_ptr<Object> _evaluateFunctionLiteral(
-      const std::shared_ptr<FunctionLiteralExpression> &node);
+      const FunctionLiteralExpressionPtr &node);
   std::shared_ptr<Object>
-  _evaluateCallExpression(const std::shared_ptr<CallExpression> &node);
+  _evaluateCallExpression(const CallExpressionPtr &node);
+  std::shared_ptr<Object> 
+      _evaluateIndexExpression(std::shared_ptr<Object> left, std::shared_ptr<Object> index);
   std::vector<std::shared_ptr<Object>>
-  _evaluateExpressions(std::vector<std::shared_ptr<Expression>> arguments);
+  _evaluateExpressions(ExpressionPtrVec arguments);
+  std::shared_ptr<Object>
+  _evaluateArrayIndexExpression(std::shared_ptr<Object> array, std::shared_ptr<Object> index);
   std::shared_ptr<Object>
   _applyFunction(const std::shared_ptr<Object> &function,
                  const std::vector<std::shared_ptr<Object>> &arguments);

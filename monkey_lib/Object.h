@@ -14,7 +14,7 @@ typedef std::string ObjectType;
 const ObjectType ERROR_OBJ = "ERROR", INTEGER_OBJ = "INTEGER",
                  STRING_OBJ = "STRING", BOOLEAN_OBJ = "BOOLEAN",
                  NULL_OBJ = "NULL", RETURN_VALUE_OBJ = "RETURN_VALUE",
-                 FUNCTION_OBJ = "FUNCTION", BUILTIN_OBJ = "BUILTIN";
+                 FUNCTION_OBJ = "FUNCTION", BUILTIN_OBJ = "BUILTIN", ARRAY_OBJ = "ARRAY";
 
 class Object {
 public:
@@ -75,14 +75,14 @@ public:
 
 class FunctionObject : public Object {
 public:
-  explicit FunctionObject(std::vector<std::shared_ptr<Identifier>> parameters,
-                          std::shared_ptr<BlockStatement> body,
+  explicit FunctionObject(IdentifierPtrVec parameters,
+                          BlockStatementPtr body,
                           std::shared_ptr<Environment> environment);
   ObjectType type() override;
   std::string inspect() override;
 
-  std::vector<std::shared_ptr<Identifier>> parameters;
-  std::shared_ptr<BlockStatement> body;
+  IdentifierPtrVec parameters;
+  BlockStatementPtr body;
   std::shared_ptr<Environment> environment;
 };
 
@@ -101,6 +101,14 @@ public:
   BuiltinFunction value;
 };
 
+class ArrayObject : public Object {
+public:
+  explicit ArrayObject(std::vector<std::shared_ptr<Object>> elements);
+  ObjectType type() override;
+  std::string inspect() override;
+
+  std::vector<std::shared_ptr<Object>> elements;
+};
 
 const auto NULL_ = std::make_shared<NullObject>();
 const auto TRUE_ = std::make_shared<BooleanObject>(true);

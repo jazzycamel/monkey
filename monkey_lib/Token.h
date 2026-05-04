@@ -22,7 +22,7 @@ const TokenType ILLEGAL = "ILLEGAL", EOF_ = "EOF",
 
                 // Delimiters
     COMMA = ",", SEMICOLON = ";", LPAREN = "(", RPAREN = ")", LBRACE = "{",
-                RBRACE = "}",
+                RBRACE = "}", LBRACKET = "[", RBRACKET = "]",
 
                 // Keywords
     FUNCTION = "FUNCTION", LET = "LET", TRUE = "TRUE", FALSE = "FALSE",

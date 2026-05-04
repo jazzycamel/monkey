@@ -2,7 +2,6 @@
 #define MONKEY_PARSER_H
 
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -12,66 +11,69 @@
 
 class Parser;
 
-typedef std::shared_ptr<Expression> (Parser::*prefixParseFn)();
+typedef ExpressionPtr (Parser::*prefixParseFn)();
 
-typedef std::shared_ptr<Expression> (Parser::*infixParseFn)(
-    std::shared_ptr<Expression>);
+typedef ExpressionPtr (Parser::*infixParseFn)(ExpressionPtr);
 
-enum { LOWEST = 1, EQUALS, LESS_GREATER, SUM, PRODUCT, PREFIX, CALL };
+enum { LOWEST = 1, EQUALS, LESS_GREATER, SUM, PRODUCT, PREFIX, CALL, INDEX };
 
 const std::map<TokenType, int> precedences = {
     {EQ, EQUALS},       {NOT_EQ, EQUALS},    {LT, LESS_GREATER},
     {GT, LESS_GREATER}, {PLUS, SUM},         {MINUS, SUM},
-    {SLASH, PRODUCT},   {ASTERISK, PRODUCT}, {LPAREN, CALL}};
+    {SLASH, PRODUCT},   {ASTERISK, PRODUCT}, {LPAREN, CALL}, {LBRACKET, INDEX} };
 
 class Parser {
 public:
   explicit Parser(Lexer *lexer);
 
-  std::shared_ptr<Program> parseProgram();
+  ProgramPtr parseProgram();
 
   std::vector<std::string> errors();
 
 private:
   void _nextToken();
 
-  std::shared_ptr<Statement> _parseStatement();
+  StatementPtr _parseStatement();
 
-  std::shared_ptr<LetStatement> _parseLetStatement();
+  LetStatementPtr _parseLetStatement();
 
-  std::shared_ptr<ReturnStatement> _parseReturnStatement();
+  ReturnStatementPtr _parseReturnStatement();
 
-  std::shared_ptr<ExpressionStatement> _parseExpressionStatement();
+  ExpressionStatementPtr _parseExpressionStatement();
 
-  std::shared_ptr<Expression> _parseExpression(int precedence);
+  ExpressionPtr _parseExpression(int precedence);
 
-  std::shared_ptr<Expression> _parseIdentifier();
+  ExpressionPtrVec _parseExpressionList(TokenType end);
 
-  std::shared_ptr<Expression> _parseIntegerLiteralExpression();
+  ExpressionPtr _parseIdentifier();
 
-  std::shared_ptr<Expression> _parseStringLiteralExpression();
+  ExpressionPtr _parseIntegerLiteralExpression();
 
-  std::shared_ptr<Expression> _parsePrefixExpression();
+  ExpressionPtr _parseStringLiteralExpression();
 
-  std::shared_ptr<Expression>
-  _parseInfixExpression(std::shared_ptr<Expression> left);
+  ExpressionPtr _parsePrefixExpression();
 
-  std::shared_ptr<Expression> _parseBooleanLiteralExpression();
+  ExpressionPtr _parseInfixExpression(ExpressionPtr left);
 
-  std::shared_ptr<Expression> _parseGroupedExpression();
+  ExpressionPtr _parseBooleanLiteralExpression();
 
-  std::shared_ptr<Expression> _parseIfExpression();
+  ExpressionPtr _parseGroupedExpression();
 
-  std::shared_ptr<BlockStatement> _parseBlockStatement();
+  ExpressionPtr _parseIfExpression();
 
-  std::shared_ptr<Expression> _parseFunctionLiteralExpression();
+  BlockStatementPtr _parseBlockStatement();
 
-  std::vector<std::shared_ptr<Identifier>> _parseFunctionParameters();
+  ExpressionPtr _parseFunctionLiteralExpression();
 
-  std::shared_ptr<Expression>
-  _parseCallExpression(std::shared_ptr<Expression> function);
+  IdentifierPtrVec _parseFunctionParameters();
 
-  std::vector<std::shared_ptr<Expression>> _parseCallArguments();
+  ExpressionPtr _parseCallExpression(ExpressionPtr function);
+
+  ExpressionPtrVec _parseCallArguments();
+
+  ExpressionPtr _parseArrayLiteral();
+
+  ExpressionPtr _parseIndexExpression(ExpressionPtr left);
 
   void _noPrefixParseFnError(const TokenType &t);
 

@@ -1,4 +1,5 @@
 #include "Lexer.h"
+#include "Token.h"
 
 #include <utility>
 
@@ -39,6 +40,12 @@ Token Lexer::nextToken() {
     break;
   case '}':
     token.type = RBRACE;
+    break;
+  case '[':
+    token.type = LBRACKET;
+    break;  
+  case ']':
+    token.type = RBRACKET;
     break;
   case ',':
     token.type = COMMA;

@@ -27,6 +27,7 @@ if (5 < 10) {
 
 "foobar"
 "foo bar"
+[1, 2];
 )";
 
   Token tests[] = {
@@ -55,6 +56,8 @@ if (5 < 10) {
       {EQ, "=="},        {INT, "10"},        {SEMICOLON, ";"},
       {INT, "10"},       {NOT_EQ, "!="},     {INT, "9"},
       {SEMICOLON, ";"},  {STRING, "foobar"}, {STRING, "foo bar"},
+      {LBRACKET, "["},   {INT, "1"},         {COMMA, ","},      
+      {INT, "2"},        {RBRACKET, "]"},    {SEMICOLON, ";"},  
       {EOF_, ""},
   };
 

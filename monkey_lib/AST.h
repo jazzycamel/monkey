@@ -20,7 +20,9 @@ enum NodeType {
   BLOCK_STATEMENT,
   IF_EXPRESSION,
   FUNCTION_LITERAL,
-  CALL_EXPRESSION
+  CALL_EXPRESSION,
+  ARRAY_LITERAL,
+  INDEX_EXPRESSION,
 };
 
 class Node {
@@ -29,16 +31,21 @@ public:
   virtual std::string string() = 0;
   virtual NodeType nodeType() = 0;
 };
+typedef std::shared_ptr<Node> NodePtr;
 
 class Statement : public Node {
 public:
   virtual void statementNode() = 0;
 };
+typedef std::shared_ptr<Statement> StatementPtr;
+typedef std::vector<StatementPtr> StatementPtrVec;
 
 class Expression : public Node {
 public:
   virtual void expressionNode() = 0;
 };
+typedef std::shared_ptr<Expression> ExpressionPtr;
+typedef std::vector<ExpressionPtr> ExpressionPtrVec;
 
 class Identifier : public Expression {
 public:
@@ -50,14 +57,17 @@ public:
   Token token;
   std::string value;
 };
+typedef std::shared_ptr<Identifier> IdentifierPtr;
+typedef std::vector<IdentifierPtr> IdentifierPtrVec;
 
 class Program : public Node {
 public:
   std::string tokenLiteral() override;
-  std::vector<std::shared_ptr<Statement>> statements;
+  StatementPtrVec statements;
   std::string string() override;
   NodeType nodeType() override;
 };
+typedef std::shared_ptr<Program> ProgramPtr;
 
 class LetStatement : public Statement {
 public:
@@ -68,8 +78,9 @@ public:
 
   Token token;
   Identifier *name;
-  std::shared_ptr<Expression> value;
+  ExpressionPtr value;
 };
+typedef std::shared_ptr<LetStatement> LetStatementPtr;
 
 class ReturnStatement : public Statement {
 public:
@@ -79,8 +90,9 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::shared_ptr<Expression> returnValue;
+  ExpressionPtr returnValue;
 };
+typedef std::shared_ptr<ReturnStatement> ReturnStatementPtr;
 
 class ExpressionStatement : public Statement {
 public:
@@ -90,8 +102,9 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::shared_ptr<Expression> expression;
+  ExpressionPtr expression;
 };
+typedef std::shared_ptr<ExpressionStatement> ExpressionStatementPtr;
 
 class IntegerLiteralExpression : public Expression {
 public:
@@ -115,6 +128,18 @@ public:
   std::string value;
 };
 
+class ArrayLiteralExpression : public Expression {
+public:  
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+  NodeType nodeType() override;
+
+  Token token;
+  ExpressionPtrVec elements;
+};
+
+
 class PrefixExpression : public Expression {
 public:
   std::string tokenLiteral() override;
@@ -124,7 +149,7 @@ public:
 
   Token token;
   std::string operator_;
-  std::shared_ptr<Expression> right;
+  ExpressionPtr right;
 };
 
 class InfixExpression : public Expression {
@@ -135,9 +160,9 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::shared_ptr<Expression> left;
+  ExpressionPtr left;
   std::string operator_;
-  std::shared_ptr<Expression> right;
+  ExpressionPtr right;
 };
 
 class BooleanLiteralExpression : public Expression {
@@ -159,8 +184,9 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::vector<std::shared_ptr<Statement>> statements;
+  StatementPtrVec statements;
 };
+typedef std::shared_ptr<BlockStatement> BlockStatementPtr;
 
 class IfExpression : public Expression {
 public:
@@ -170,10 +196,11 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::shared_ptr<Expression> condition;
-  std::shared_ptr<BlockStatement> consequence;
-  std::shared_ptr<BlockStatement> alternative;
+  ExpressionPtr condition;
+  BlockStatementPtr consequence;
+  BlockStatementPtr alternative;
 };
+typedef std::shared_ptr<IfExpression> IfExpressionPtr;
 
 class FunctionLiteralExpression : public Expression {
 public:
@@ -183,9 +210,10 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::vector<std::shared_ptr<Identifier>> parameters;
-  std::shared_ptr<BlockStatement> body;
+  IdentifierPtrVec parameters;
+  BlockStatementPtr body;
 };
+typedef std::shared_ptr<FunctionLiteralExpression> FunctionLiteralExpressionPtr;
 
 class CallExpression : public Expression {
 public:
@@ -195,8 +223,21 @@ public:
   NodeType nodeType() override;
 
   Token token;
-  std::shared_ptr<Expression> function;
-  std::vector<std::shared_ptr<Expression>> arguments;
+  ExpressionPtr function;
+  ExpressionPtrVec arguments;
+};
+typedef std::shared_ptr<CallExpression> CallExpressionPtr;
+
+class IndexExpression : public Expression {
+public:
+  std::string tokenLiteral() override;
+  void expressionNode() override;
+  std::string string() override;
+  NodeType nodeType() override;
+
+  Token token;
+  ExpressionPtr left;
+  ExpressionPtr index;
 };
 
 #endif // MONKEY_AST_H

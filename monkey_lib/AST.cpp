@@ -65,6 +65,20 @@ void StringLiteralExpression::expressionNode() {}
 NodeType StringLiteralExpression::nodeType() { return STRING_LITERAL; }
 std::string StringLiteralExpression::string() { return token.literal; }
 
+std::string ArrayLiteralExpression::tokenLiteral(){ return token.literal; }
+void ArrayLiteralExpression::expressionNode() {}
+NodeType ArrayLiteralExpression::nodeType() { return ARRAY_LITERAL; }
+std::string ArrayLiteralExpression::string() { 
+  std::string out = "[";
+  auto size = elements.size();
+  for(size_t i=0; i<size; i++) {
+    out += elements[i]->string();
+    if(i<size-1) out += ", ";
+  }
+  out += "]";
+  return out;
+}
+
 std::string PrefixExpression::tokenLiteral() { return token.literal; }
 void PrefixExpression::expressionNode() {}
 NodeType PrefixExpression::nodeType() { return PREFIX_EXPRESSION; }
@@ -146,5 +160,17 @@ std::string CallExpression::string() {
     }
   }
   out += ")";
+  return out;
+}
+
+std::string IndexExpression::tokenLiteral() { return token.literal; }
+void IndexExpression::expressionNode() {}
+NodeType IndexExpression::nodeType() { return INDEX_EXPRESSION; }
+std::string IndexExpression::string() {
+  std::string out = "(";
+  out += left->string();
+  out += "[";
+  out += index->string();
+  out += "])";
   return out;
 }
