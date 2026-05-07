@@ -10,9 +10,7 @@ const auto PROMPT = ">> ";
 class REPL {
 public:
   static void start();
-
-private:
-  static void _printParseErrors(const std::vector<std::string> &errors);
+  static void printParseErrors(const std::vector<std::string> &errors);
 };
 
 #endif // MONKEY_REPL_H

@@ -4,6 +4,7 @@ set(HEADER_FILES
         Lexer.h
         Token.h
         REPL.h
+        FileRunner.h
         utilities.h
         AST.h
         Parser.h
@@ -14,6 +15,7 @@ set(SOURCE_FILES
         Lexer.cpp
         Token.cpp
         REPL.cpp
+        FileRunner.cpp
         utilities.cpp
         AST.cpp
         Parser.cpp

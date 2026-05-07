@@ -16,7 +16,7 @@ void REPL::start() {
     auto parser = new Parser(lexer);
     auto program = parser->parseProgram();
     if (!parser->errors().empty()) {
-      _printParseErrors(parser->errors());
+      printParseErrors(parser->errors());
       continue;
     }
 
@@ -41,7 +41,7 @@ const auto MONKEY_FACE = R"(
           '-----'
 )";
 
-void REPL::_printParseErrors(const std::vector<std::string> &errors) {
+void REPL::printParseErrors(const std::vector<std::string> &errors) {
   std::cout << MONKEY_FACE << std::endl;
   std::cout << "Whoops! We ran into some monkey business here!" << std::endl;
   std::cout << " parser errors:" << std::endl;
